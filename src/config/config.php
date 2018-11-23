@@ -39,6 +39,7 @@ return [
     'collection'    => 'laravel-form-builder::collection',
     'static'        => 'laravel-form-builder::static',
 
+    'jsvalidator'   =>'laravel-form-builder::jsvalidator',
     // Remove the laravel-form-builder:: prefix above when using template_prefix
     'template_prefix'   => '',
 

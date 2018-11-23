@@ -91,6 +91,7 @@ class FormBuilderServiceProvider extends ServiceProvider
 
             return $form->label($name, $value, $options);
         });
+        $this->loadRoutesFrom(__DIR__.'/../../routes.php');
     }
 
     /**

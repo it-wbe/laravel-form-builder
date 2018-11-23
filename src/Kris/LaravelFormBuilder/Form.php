@@ -13,8 +13,8 @@ use Kris\LaravelFormBuilder\Events\AfterFormValidation;
 use Kris\LaravelFormBuilder\Events\BeforeFormValidation;
 use Kris\LaravelFormBuilder\Fields\FormField;
 use Kris\LaravelFormBuilder\Filters\FilterResolver;
-
-class Form
+use Kris\LaravelFormBuilder;
+abstract class Form implements ISubmitForm
 {
     /**
      * All fields that are added.
@@ -47,15 +47,27 @@ class Form
      */
     protected $formOptions = [
         'method' => 'GET',
-        'url' => null
+        'url' => null,
+    ];
+
+    protected $formJsValidatorOptions = [
+        'jsValidator'=>false,
+        'showJSLibs' =>false,
+        'showJSValidation'=>false,
     ];
 
     /**
-     * Form specific configuration.
+     * Do something with data
      *
-     * @var array
+     * @param Request $request
+     * @return mixed
      */
-    protected $formConfig = [];
+    public abstract function submit(Request $request);
+
+
+    public function jsValidate(){
+        return $this->formJsValidatorOptions['jsValidator'];
+    }
 
     /**
      * Additional data which can be used to build fields.
@@ -221,9 +233,30 @@ class Form
             return $this;
         }
 
+        $this->addSpeciatlTypeRules($type,$options);
+
         $this->addField($this->makeField($name, $type, $options), $modify);
 
         return $this;
+    }
+
+    /**
+     * Add rules if need for special types
+     * @param string $type
+     * @param array $options
+     *
+     */
+    protected function addSpeciatlTypeRules($type,&$options){
+        $check = ['email'];
+        if(in_array($type,$check)){
+            if(isset($options['rules'])){
+                if(strpos($options['rules'],$type)===false){
+                    $options['rules'] .= "|".$type;
+                }
+            }else{
+                $options['rules'] = $type;
+            }
+        }
     }
 
     /**
@@ -497,20 +530,6 @@ class Form
         $this->formOptions[$option] = $value;
 
         return $this;
-    }
-
-    /**
-     * Get the passed config key using the custom
-     * form config, if any.
-     *
-     * @param string $key
-     * @param mixed $default
-     *
-     * @return mixed
-     */
-    public function getConfig($key = null, $default = null)
-    {
-        return $this->formHelper->getConfig($key, $default, $this->formConfig);
     }
 
     /**
@@ -871,7 +890,7 @@ class Form
             return $this->templatePrefix;
         }
 
-        return $this->getConfig('template_prefix');
+        return $this->formHelper->getConfig('template_prefix');
     }
 
     /**
@@ -967,7 +986,7 @@ class Form
      */
     protected function getTemplate()
     {
-        return $this->getTemplatePrefix() . $this->getFormOption('template', $this->getConfig('form'));
+        return $this->getTemplatePrefix() . $this->getFormOption('template', $this->formHelper->getConfig('form'));
     }
 
     /**
@@ -1432,5 +1451,35 @@ class Form
         }
 
         return $rawValues;
+    }
+
+    /**
+     * Method generate jQuery validator
+     *
+     * @return script type=text/javascript
+     */
+
+
+    public function renderJSValidator(){
+        $rulesWhatChange = ['required','email','min','max'];
+        $rulesChangeTo = ['required:true','email:true','minlength','maxlength'];
+        $rules = [];
+        foreach ($this->fields as $field) {
+            if($field->getType() != "submit"){
+//                dump($field);
+                if($field->getOption('rules')){
+                    $rules [] = $field->getName()." : { ".str_replace('|',',',str_replace($rulesWhatChange,$rulesChangeTo,$field->getOption('rules')))."}, ";
+                }
+            }
+        }
+        $form_id = $this->formOptions['id'];
+        return $this->formHelper->getView()
+            ->make('laravel-form-builder::jsvalidator')
+            ->with('validatorOptions', $this->formJsValidatorOptions)
+            ->with('rules', $rules)
+            ->with('form_id',$form_id)
+            ->render();
+
+
     }
 }

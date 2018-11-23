@@ -62,6 +62,11 @@ class FormBuilder
 
         $form = $this->setDependenciesAndOptions($this->container->make($class), $options, $data);
 
+        if(!$form->formOptions['url']){
+            $form->setUrl(route('kris.form-submit'));
+        }
+        $form->add('model','hidden',['value'=>$formClass]);
+
         $form->buildForm();
 
         $this->eventDispatcher->fire(new AfterFormCreation($form));
