@@ -1466,7 +1466,6 @@ abstract class Form implements ISubmitForm
         $rules = [];
         foreach ($this->fields as $field) {
             if($field->getType() != "submit"){
-//                dump($field);
                 if($field->getOption('rules')){
                     $rules [] = $field->getName()." : { ".str_replace('|',',',str_replace($rulesWhatChange,$rulesChangeTo,$field->getOption('rules')))."}, ";
                 }
