@@ -1,11 +1,11 @@
 {
-    "name": "kris/laravel-form-builder",
+    "name": "wbe/laravel-form-builder",
     "description": "Laravel form builder - symfony like",
     "license": "MIT",
     "authors": [
         {
-            "name": "Kristijan Husak",
-            "email": "husakkristijan@gmail.com"
+            "name": "",
+            "email": ""
         }
     ],
     "require": {
